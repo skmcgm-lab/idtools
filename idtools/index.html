@@ -1,299 +1,162 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>密钥 & 提取 & 转换</title>
-<meta name="color-scheme" content="dark light">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💎 密钥 & 提取 & 转换</title>
 <style>
-  :root{
-    --bg:#0f0f10;
-    --card:#121212;
-    --muted:#9aa4b2;
-    --accent:#f6c85f;
-    --accent-2:#f39c12;
-    --success:#34d399;
-    --glass: rgba(255,255,255,0.03);
-    --radius:14px;
-    --btn-radius:12px;
-  }
-  @media (prefers-color-scheme: light){
-    :root{
-      --bg: #f3f7fb;
-      --card: #ffffff;
-      --muted:#64748b;
-      --accent:#2563eb;
-      --accent-2:#06b6d4;
-      --success:#10b981;
-      --glass: rgba(0,0,0,0.03);
+    body {
+        background-color: #111;
+        color: #ffd700;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        padding: 20px;
     }
-  }
-
-  html,body{
-    height:100%;
-    margin:0;
-    font-family: "Segoe UI","PingFang SC", system-ui, -apple-system, "Helvetica Neue", Arial;
-    background: linear-gradient(180deg, rgba(2,2,2,0.85), rgba(8,8,8,0.9)), var(--bg);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:18px;
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    color: #f5e6b8;
-  }
-
-  .wrap{
-    width:100%;
-    max-width:920px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:18px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
-    padding:18px;
-    box-sizing:border-box;
-    border: 1px solid rgba(255,255,255,0.03);
-  }
-
-  header{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px; }
-  .title { display:flex; gap:12px; align-items:center; }
-  .logo{ width:46px;height:46px;border-radius:10px;
-    background: linear-gradient(135deg,var(--accent),var(--accent-2));
-    display:flex;align-items:center;justify-content:center; color:#09121a;font-weight:700;font-size:18px; }
-  h1{ margin:0;color:var(--accent-2);font-size:1.15rem; }
-  p.sub{ margin:0;color:var(--muted);font-size:0.82rem; }
-
-  .grid{ display:grid; grid-template-columns: 1fr 360px; gap:16px; }
-  @media (max-width:840px){ .grid{ grid-template-columns:1fr; } }
-
-  .card{ background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00)); border-radius: 12px; padding:12px; border:1px solid var(--glass); }
-  label{ display:block; color:var(--muted); font-size:0.86rem; margin-bottom:8px; }
-  textarea{ width:100%; min-height:220px; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); background:transparent; color: #fff; font-size:0.95rem; box-sizing:border-box; outline:none; }
-  @media (prefers-color-scheme: light){ textarea{ color:#0b1220; background:#fbfdff; border:1px solid rgba(2,6,23,0.04); } }
-
-  .controls{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
-  .controls button, .controls .small { padding:10px 12px; border-radius: var(--btn-radius); border:none; cursor:pointer; font-size:0.95rem; }
-  .btn-primary{ background: linear-gradient(90deg,var(--accent),var(--accent-2)); color:#071422; box-shadow: 0 8px 24px rgba(59,130,246,0.06); }
-  .btn-ghost{ background: transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.03); }
-  .btn-copy{ background: linear-gradient(90deg,var(--success),#2aa174); color:#042; }
-  .btn-download{ background: linear-gradient(90deg,var(--accent),#d39b12); color:#071422; }
-
-  .panel{ display:flex; flex-direction:column; gap:10px; }
-  .output{ white-space:pre-wrap; word-break:break-all; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; font-size:0.92rem; color: #fff; background: rgba(255,255,255,0.02); padding:10px; border-radius:10px; border:1px solid var(--glass); min-height:140px; }
-  @media (prefers-color-scheme: light){ .output{ color:#0b1220; background:#fbfdff; } }
-
-  input[type="text"]{ padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03); background:transparent; color: #fff; width:100%; }
-  @media (prefers-color-scheme: light){ input[type="text"]{ color:#0b1220; background:#fff; border:1px solid rgba(2,6,23,0.04); } }
-
-  footer{ display:flex; gap:8px; align-items:center; justify-content:space-between; margin-top:12px; color:var(--muted); font-size:0.82rem; }
+    h1 {
+        text-align: center;
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+    textarea {
+        width: 100%;
+        height: 150px;
+        background-color: #222;
+        color: #ffd700;
+        border: 2px solid #444;
+        padding: 10px;
+        resize: vertical;
+        font-family: monospace;
+        font-size: 14px;
+    }
+    .result-container {
+        position: relative;
+        margin-top: 10px;
+    }
+    .btn {
+        background-color: #222;
+        color: #ffd700;
+        border: 2px solid #ffd700;
+        padding: 8px 16px;
+        margin: 5px 5px 5px 0;
+        cursor: pointer;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+    .btn:hover {
+        background-color: #ffd700;
+        color: #111;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+    .prefix-input {
+        width: 150px;
+        margin-left: 10px;
+        padding: 5px;
+        background-color: #222;
+        color: #ffd700;
+        border: 2px solid #444;
+    }
 </style>
 </head>
 <body>
-  <div class="wrap" role="main" aria-label="密钥 提取 转换 工具">
-    <header>
-      <div class="title">
-        <div class="logo">密</div>
-        <div>
-          <h1>密钥 & 提取 & 转换</h1>
-          <p class="sub">支持三种格式：ID:Pass、id token、序号 id token — 本地提取并批量转换为 CSV</p>
-        </div>
-      </div>
-      <div style="color:var(--muted)">本地运行 · 隐私安全</div>
-    </header>
+<h1>💎 密钥 & 提取 & 转换</h1>
 
-    <div class="grid">
-      <div class="card">
-        <label for="inputArea">输入 / 粘贴原始内容（支持三种格式）</label>
-        <textarea id="inputArea" placeholder="粘贴内容，例如：&#10;ID  : 0-42251388&#10;Pass: caackchgayz9...&#10;&#10;或：&#10;4-32554213 njftsa7s6...&#10;&#10;或：&#10;235 11-42761447 tf78g..."></textarea>
+<label for="prefix">前缀：</label>
+<input type="text" id="prefix" class="prefix-input" value="ID">
 
-        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;">
-          <input id="prefix" type="text" placeholder="前缀（例如：id）" value="id" style="flex:1;min-width:140px;">
-          <select id="mode" style="width:160px;border-radius:10px;padding:8px;background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.03);">
-            <option value="auto">编号自动（01/001）</option>
-            <option value="two">强制两位（01...）</option>
-            <option value="three">强制三位（001...）</option>
-          </select>
-        </div>
+<textarea id="inputText" placeholder="在这里粘贴你的文本..."></textarea>
 
-        <div class="controls" style="margin-top:12px;">
-          <button class="btn-primary" id="btnExtract">提取</button>
-          <button class="btn-primary" id="btnConvert">提取并转换</button>
-          <button class="btn-copy" id="btnCopy">复制结果</button>
-          <button class="btn-download" id="btnDownload">导出 CSV (output.csv)</button>
-          <button class="btn-ghost" id="btnClear">清空</button>
-        </div>
+<div style="margin-top:10px;">
+    <button class="btn" onclick="extract()">提取</button>
+    <button class="btn" onclick="convert()">转换</button>
+    <button class="btn" onclick="clearAll()">清空</button>
+    <button class="btn" onclick="downloadResult()">下载</button>
+</div>
 
-        <p style="margin-top:10px;color:var(--muted);font-size:0.86rem;">提示：按 <strong>Ctrl / Cmd + Enter</strong> 可快速执行 提取并转换。</p>
-      </div>
+<h2>提取结果</h2>
+<div class="result-container">
+    <button class="btn copy-btn" onclick="copyResult('extracted')">📋 一键复制</button>
+    <textarea id="extracted" readonly></textarea>
+</div>
 
-      <div class="panel">
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><strong>提取结果</strong></div>
-            <div style="font-size:0.82rem;color:var(--muted)">去重按 ID+Token</div>
-          </div>
-          <div id="extracted" class="output" aria-live="polite"></div>
-        </div>
-
-        <div class="card">
-          <div style="display:flex;justify-content:space-between;align-items:center;">
-            <div><strong>转换输出 (CSV)</strong></div>
-            <div style="font-size:0.82rem;color:var(--muted)">格式： 前缀编号,ID,TOKEN</div>
-          </div>
-          <div id="converted" class="output" aria-live="polite"></div>
-        </div>
-      </div>
-    </div>
-
-    <footer>
-      <div class="muted">生成文件名： <strong>output.csv</strong></div>
-      <div style="font-size:0.82rem;color:var(--muted)">© 本地工具</div>
-    </footer>
-  </div>
+<h2>转换结果</h2>
+<div class="result-container">
+    <button class="btn copy-btn" onclick="copyResult('converted')">📋 一键复制</button>
+    <textarea id="converted" readonly></textarea>
+</div>
 
 <script>
-(function(){
-  const input = document.getElementById('inputArea');
-  const prefixEl = document.getElementById('prefix');
-  const extractedEl = document.getElementById('extracted');
-  const convertedEl = document.getElementById('converted');
-  const modeSel = document.getElementById('mode');
+function extract() {
+    const text = document.getElementById('inputText').value;
+    const idRegex1 = /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g;
+    const idRegex2 = /^\s*(\d+[-]\d+)\s+(\S+)/gm;
+    const idRegex3 = /^\s*\d+\s+(\d+[-]\d+)\s+(\S+)/gm;
+    let match;
+    let results = [];
 
-  function uniqueArray(arr){
-    const seen = new Set();
-    const out = [];
-    for(const it of arr){
-      const key = it.id + '|' + it.token;
-      if(!seen.has(key)){ seen.add(key); out.push(it); }
-    }
-    return out;
-  }
-
-  function padNumber(i, width){
-    return String(i).padStart(width, '0');
-  }
-
-  function computeWidth(total, mode){
-    if(mode === 'two') return 2;
-    if(mode === 'three') return 3;
-    return total >= 100 ? 3 : 2;
-  }
-
-  function parseAll(text){
-    const results = [];
-
-    // block: ID : ...  Pass: ...
-    const blockRegex = /ID\\s*[:：]?\\s*([0-9]+-[0-9]+)\\s*[\\s\\S]{0,40}?Pass\\s*[:：]?\\s*([^\\s]+)/gi;
-    let m;
-    while((m = blockRegex.exec(text)) !== null){
-      results.push({ id: m[1], token: m[2] });
-    }
-
-    // line-based parsing
-    const lines = text.split(/\\r?\\n/);
-    for(const raw of lines){
-      const line = raw.trim();
-      if(!line) continue;
-
-      // numbered: 235 11-42761447 token
-      const numLine = line.match(/^\\s*\\d+\\s+([0-9]+-[0-9]+)\\s+([^\\s]+)\\s*$/);
-      if(numLine){
-        results.push({ id: numLine[1], token: numLine[2] });
-        continue;
-      }
-
-      // id token: 4-32554213 token
-      const idToken = line.match(/^([0-9]+-[0-9]+)\\s+([^\\s]+)\\s*$/);
-      if(idToken){
-        results.push({ id: idToken[1], token: idToken[2] });
-        continue;
-      }
-    }
-
-    return uniqueArray(results);
-  }
-
-  function showExtracted(list){
-    if(!list.length){ extractedEl.textContent = '（未提取到任何 ID / Token）'; return; }
-    extractedEl.textContent = list.map(x => `${x.id} ${x.token}`).join('\\n');
-  }
-
-  function showConverted(lines){
-    if(!lines.length){ convertedEl.textContent = '（无转换内容）'; return; }
-    convertedEl.textContent = lines.join('\\n');
-  }
-
-  function extractOnly(){
-    const txt = input.value || '';
-    const list = parseAll(txt);
-    showExtracted(list);
-    convertedEl.textContent = '';
-    return list;
-  }
-
-  function convertAfterExtract(){
-    const list = parseAll(input.value || '');
-    if(!list.length){ convertedEl.textContent = '（无转换内容，请先粘贴并提取）'; return []; }
-    const total = list.length;
-    const mode = modeSel.value;
-    const width = computeWidth(total, mode);
-    const prefix = (prefixEl.value || 'id').trim();
-    const out = list.map((it, idx) => {
-      const n = padNumber(idx+1, width);
-      // CSV line: 名称,ID,TOKEN
-      return `${prefix}${n},${it.id},${it.token}`;
+    [idRegex1, idRegex2, idRegex3].forEach(regex => {
+        while ((match = regex.exec(text)) !== null) {
+            results.push(`${match[1]} ${match[2]}`);
+        }
     });
-    showExtracted(list);
-    showConverted(out);
-    return out;
-  }
 
-  async function copyText(targetEl){
-    const txt = targetEl.textContent || '';
-    if(!txt.trim()){ alert('没有可复制的内容'); return; }
-    try{
-      await navigator.clipboard.writeText(txt);
-      alert('已复制到剪贴板');
-    }catch(e){
-      const ta = document.createElement('textarea');
-      ta.value = txt;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      alert('已复制到剪贴板');
+    document.getElementById('extracted').value = results.join('\n');
+    document.getElementById('converted').value = ''; // 清空转换结果
+}
+
+function convert() {
+    const extracted = document.getElementById('extracted').value.trim();
+    if (!extracted) {
+        alert('请先提取数据！');
+        return;
     }
-  }
+    const lines = extracted.split('\n');
+    const prefix = document.getElementById('prefix').value || 'ID';
+    const converted = lines.map((line, idx) => {
+        const [id, token] = line.split(' ');
+        let num = idx + 1;
+        let numStr = num < 100 ? String(num).padStart(2,'0') : String(num).padStart(3,'0');
+        return `${prefix}${numStr},${id},${token}`;
+    }).join('\n');
+    document.getElementById('converted').value = converted;
+}
 
-  function downloadCsv(){
-    const txt = convertedEl.textContent || '';
-    if(!txt.trim()){ alert('没有可导出的内容'); return; }
-    const header = 'name,id,token\\n';
-    const blob = new Blob([header + txt], { type: 'text/csv;charset=utf-8' });
-    const filename = 'output.csv';
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=> URL.revokeObjectURL(a.href), 5000);
-  }
+function clearAll() {
+    document.getElementById('inputText').value = '';
+    document.getElementById('extracted').value = '';
+    document.getElementById('converted').value = '';
+}
 
-  document.getElementById('btnExtract').addEventListener('click', extractOnly);
-  document.getElementById('btnConvert').addEventListener('click', convertAfterExtract);
-  document.getElementById('btnCopy').addEventListener('click', () => {
-    if(convertedEl.textContent && convertedEl.textContent.trim()) copyText(convertedEl);
-    else copyText(extractedEl);
-  });
-  document.getElementById('btnDownload').addEventListener('click', downloadCsv);
-  document.getElementById('btnClear').addEventListener('click', ()=>{ input.value=''; extractedEl.textContent=''; convertedEl.textContent=''; prefixEl.value='id'; });
+function copyResult(id) {
+    const textarea = document.getElementById(id);
+    textarea.select();
+    document.execCommand('copy');
+    alert('✅ 已复制！');
+}
 
-  input.addEventListener('keydown', (e)=>{
-    if((e.ctrlKey || e.metaKey) && e.key === 'Enter') convertAfterExtract();
-  });
-
-  window.__idtool_parseAll = parseAll;
-})(); 
+function downloadResult() {
+    let content = document.getElementById('converted').value.trim();
+    let filename = '';
+    if (content) {
+        filename = (document.getElementById('prefix').value || 'ID') + '.txt';
+    } else {
+        content = document.getElementById('extracted').value.trim();
+        filename = 'token.txt';
+    }
+    if (!content) {
+        alert('没有内容可以下载！');
+        return;
+    }
+    const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+}
 </script>
 </body>
 </html>
