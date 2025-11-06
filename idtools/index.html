@@ -14,7 +14,26 @@
     h1 {
         text-align: center;
         font-size: 2em;
-        margin-bottom: 20px;
+        margin-bottom: 10px;
+    }
+    .contact-btn {
+        display: block;
+        margin: 0 auto 20px auto;
+        background-color: #222;
+        color: #ffd700;
+        border: 2px solid #ffd700;
+        padding: 8px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+        text-decoration: none;
+        text-align: center;
+        width: fit-content;
+        border-radius: 5px;
+    }
+    .contact-btn:hover {
+        background-color: #ffd700;
+        color: #111;
     }
     textarea {
         width: 100%;
@@ -64,6 +83,9 @@
 </head>
 <body>
 <h1>💎 密钥 & 提取 & 转换</h1>
+
+<!-- 新增按钮 -->
+<a class="contact-btn" href="https://qm.qq.com/q/3a2BdBptwA" target="_blank">💎 买插件联系</a>
 
 <label for="prefix">前缀：</label>
 <input type="text" id="prefix" class="prefix-input" value="ID">
