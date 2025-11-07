@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>💎 密钥 & 提取 & 转换 — 保持原始顺序版</title>
+<title>💎 密钥 & 提取 & 转换 — 终极整合版（保持顺序 + 全格式支持）</title>
 <style>
   body { background:#0b0b0b; color:#ffd966; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; padding:20px; }
   h1 { text-align:center; margin-bottom:8px; font-size:22px; }
@@ -22,10 +22,9 @@
 </head>
 <body>
 <div class="container">
-  <h1>💎 密钥 & 提取 & 转换 — 最终版</h1>
+  <h1>💎 密钥 & 提取 & 转换 — 终极版</h1>
 
   <div class="controls">
-    <a class="btn" href="https://qm.qq.com/q/3a2BdBptwA" target="_blank">💎 买插件点我</a>
     <label for="prefix">转换前缀：</label>
     <input id="prefix" class="prefix-input" value="ID" />
     <button class="btn" onclick="extract()">提取</button>
@@ -48,28 +47,28 @@
     <textarea id="converted" readonly></textarea>
   </div>
 
-  <p class="note">说明：此版本保留原始文本顺序，不自动排序；仍支持多种格式识别、去重、编号。</p>
+  <p class="note">说明：支持所有常见格式（ID:.. / 21-123456 token / 名称,ID,token 等），保持原始顺序，自动编号。</p>
 
-  <footer>生成器 · 顺序保持版（编号自动按原始顺序递增）</footer>
+  <footer>💎 终极整合版 · 原始顺序 + 多格式识别</footer>
 </div>
 
 <script>
 function extract() {
   const raw = document.getElementById('inputText').value || '';
-  // restore escaped \n, remove \r
   const text = raw.replace(/\r/g,'').replace(/\\n/g,'\n');
 
   const patterns = [
-    /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g,
-    /^\s*(\d+-\d+)\s+(\S+)/gm,
-    /^\s*\d+\s+(\d+-\d+)\s+(\S+)/gm,
-    /^\s*\d{4},(\d+-\d+),(\S+)/gm,
-    /(\d+-\d+):(\S+)/gm,
-    /(\d+-\d+)=(\S+)/gm,
-    /账号[:：]\s*(\d+-\d+)[\s,，]+(?:密钥|token|pass)[:：]?\s*(\S+)/gi,
-    /"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"(\S+?)"/gi,
-    /(\d+-\d+)\+(\S+)/gm,
-    /(\d+-\d+)\/(\S+)/gm
+    /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g, // ID: ... Pass: ...
+    /^\s*(\d+-\d+)\s+(\S+)/gm, // 21-xxxx token
+    /^\s*\d+\s+(\d+-\d+)\s+(\S+)/gm, // 带序号 1 21-xxx token
+    /^\s*\d{4},(\d+-\d+),(\S+)/gm, // 0001,21-xxx,token
+    /(\d+-\d+):(\S+)/gm, // 21-xxx:token
+    /(\d+-\d+)=(\S+)/gm, // 21-xxx=token
+    /账号[:：]\s*(\d+-\d+)[\s,，]+(?:密钥|token|pass)[:：]?\s*(\S+)/gi, // 账号：ID 密钥：token
+    /"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"(\S+?)"/gi, // JSON格式
+    /(\d+-\d+)\+(\S+)/gm, // 21-xxx+token
+    /(\d+-\d+)\/(\S+)/gm, // 21-xxx/token
+    /^[^,\n]*?,\s*(\d+-\d+)\s*,\s*([A-Za-z0-9]+)\s*$/gm // 新增：名称,ID,token
   ];
 
   let results = [];
@@ -82,7 +81,7 @@ function extract() {
     }
   });
 
-  // 同时捕捉已是 "id token" 格式的行
+  // 捕捉已是 "id token" 格式的行
   const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l);
   lines.forEach(line=>{
     const m = line.match(/^(\d+-\d+)\s+(\S+)/);
@@ -98,11 +97,8 @@ function extract() {
 }
 
 function padNumberCustom(n){
-  if (n < 100) {
-    return String(n).padStart(2,'0');
-  } else {
-    return String(n).padStart(3,'0');
-  }
+  if (n < 100) return String(n).padStart(2,'0');
+  return String(n).padStart(3,'0');
 }
 
 function convert() {
@@ -117,8 +113,7 @@ function convert() {
     const parts = line.trim().split(/\s+/);
     const id = parts[0] || '';
     const token = parts.slice(1).join(' ') || '';
-    const n = idx + 1;
-    const num = padNumberCustom(n);
+    const num = padNumberCustom(idx + 1);
     return `${prefix}${num},${id},${token}`;
   }).join('\n');
   document.getElementById('converted').value = converted;
