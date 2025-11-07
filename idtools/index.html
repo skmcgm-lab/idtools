@@ -1,183 +1,163 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💎 密钥 & 提取 & 转换</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>💎 密钥 & 提取 & 转换 — 最终版</title>
 <style>
-    body {
-        background-color: #111;
-        color: #ffd700;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        padding: 20px;
-    }
-    h1 {
-        text-align: center;
-        font-size: 2em;
-        margin-bottom: 10px;
-    }
-    .contact-btn {
-        display: block;
-        margin: 0 auto 20px auto;
-        background-color: #222;
-        color: #ffd700;
-        border: 2px solid #ffd700;
-        padding: 8px 20px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: 0.2s;
-        text-decoration: none;
-        text-align: center;
-        width: fit-content;
-        border-radius: 5px;
-    }
-    .contact-btn:hover {
-        background-color: #ffd700;
-        color: #111;
-    }
-    textarea {
-        width: 100%;
-        height: 150px;
-        background-color: #222;
-        color: #ffd700;
-        border: 2px solid #444;
-        padding: 10px;
-        resize: vertical;
-        font-family: monospace;
-        font-size: 14px;
-    }
-    .result-container {
-        position: relative;
-        margin-top: 10px;
-    }
-    .btn {
-        background-color: #222;
-        color: #ffd700;
-        border: 2px solid #ffd700;
-        padding: 8px 16px;
-        margin: 5px 5px 5px 0;
-        cursor: pointer;
-        font-size: 14px;
-        transition: 0.2s;
-    }
-    .btn:hover {
-        background-color: #ffd700;
-        color: #111;
-    }
-    .copy-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        font-size: 12px;
-        padding: 5px 10px;
-    }
-    .prefix-input {
-        width: 150px;
-        margin-left: 10px;
-        padding: 5px;
-        background-color: #222;
-        color: #ffd700;
-        border: 2px solid #444;
-    }
+  body { background:#0b0b0b; color:#ffd966; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; padding:20px; }
+  h1 { text-align:center; margin-bottom:8px; font-size:22px; }
+  .container{max-width:980px;margin:0 auto;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
+  textarea{width:100%;height:160px;background:#111;border:1px solid #333;color:#ffd966;padding:12px;font-family:monospace;font-size:14px;resize:vertical;}
+  .btn{background:#111;border:1px solid #b88a00;color:#ffd966;padding:8px 14px;border-radius:6px;cursor:pointer;}
+  .btn:hover{background:#b88a00;color:#0b0b0b;box-shadow:0 6px 18px rgba(184,138,0,0.18);}
+  .copy-btn{position:absolute;right:8px;top:8px;padding:6px 10px;font-size:12px}
+  .result-wrap{position:relative;margin-bottom:18px;}
+  label{margin-right:8px}
+  .prefix-input{width:120px;padding:6px;background:#111;border:1px solid #333;color:#ffd966;border-radius:6px;}
+  footer{margin-top:18px;font-size:13px;color:#bfbfbf;text-align:center;}
+  .note{font-size:13px;color:#e6c86b}
 </style>
 </head>
 <body>
-<h1>💎 密钥 & 提取 & 转换</h1>
+<div class="container">
+  <h1>💎 密钥 & 提取 & 转换 — 最终版（简洁黑金）</h1>
 
-<!-- 新增按钮 -->
-<a class="contact-btn" href="https://qm.qq.com/q/3a2BdBptwA" target="_blank">💎 买插件联系</a>
-
-<label for="prefix">前缀：</label>
-<input type="text" id="prefix" class="prefix-input" value="ID">
-
-<textarea id="inputText" placeholder="在这里粘贴你的文本..."></textarea>
-
-<div style="margin-top:10px;">
+  <div class="controls">
+    <a class="btn" href="https://qm.qq.com/q/3a2BdBptwA" target="_blank">💎 买插件联系</a>
+    <label for="prefix">转换前缀：</label>
+    <input id="prefix" class="prefix-input" value="ID" />
     <button class="btn" onclick="extract()">提取</button>
     <button class="btn" onclick="convert()">转换</button>
     <button class="btn" onclick="clearAll()">清空</button>
     <button class="btn" onclick="downloadResult()">下载</button>
-</div>
+  </div>
 
-<h2>提取结果</h2>
-<div class="result-container">
+  <textarea id="inputText" placeholder="在这里粘贴你的原始文本..."></textarea>
+
+  <h2>提取结果</h2>
+  <div class="result-wrap">
     <button class="btn copy-btn" onclick="copyResult('extracted')">📋 一键复制</button>
     <textarea id="extracted" readonly></textarea>
-</div>
+  </div>
 
-<h2>转换结果</h2>
-<div class="result-container">
+  <h2>转换结果</h2>
+  <div class="result-wrap">
     <button class="btn copy-btn" onclick="copyResult('converted')">📋 一键复制</button>
     <textarea id="converted" readonly></textarea>
+  </div>
+
+  <p class="note">说明：支持多种输入格式（ID:.. Pass:.. / 15-12345678 token / 序号,ID,token / JSON / 账号：ID 密钥：token / 以及 + / / : = 等分隔），自动去重、还原 "\n" 为换行并排序。</p>
+
+  <footer>生成器 · 版本：最终版（动态编号：1-99 两位、100+ 三位）</footer>
 </div>
 
 <script>
 function extract() {
-    const text = document.getElementById('inputText').value;
-    const idRegex1 = /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g;
-    const idRegex2 = /^\s*(\d+[-]\d+)\s+(\S+)/gm;
-    const idRegex3 = /^\s*\d+\s+(\d+[-]\d+)\s+(\S+)/gm;
-    let match;
-    let results = [];
+  const raw = document.getElementById('inputText').value || '';
+  // restore escaped \n, remove \r
+  const text = raw.replace(/\r/g,'').replace(/\\n/g,'\n');
 
-    [idRegex1, idRegex2, idRegex3].forEach(regex => {
-        while ((match = regex.exec(text)) !== null) {
-            results.push(`${match[1]} ${match[2]}`);
-        }
-    });
+  const patterns = [
+    /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g,
+    /^\s*(\d+-\d+)\s+(\S+)/gm,
+    /^\s*\d+\s+(\d+-\d+)\s+(\S+)/gm,
+    /^\s*\d{4},(\d+-\d+),(\S+)/gm,
+    /(\d+-\d+):(\S+)/gm,
+    /(\d+-\d+)=(\S+)/gm,
+    /账号[:：]\s*(\d+-\d+)[\s,，]+(?:密钥|token|pass)[:：]?\s*(\S+)/gi,
+    /"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"(\S+?)"/gi,
+    /(\d+-\d+)\+(\S+)/gm,
+    /(\d+-\d+)\/(\S+)/gm
+  ];
 
-    document.getElementById('extracted').value = results.join('\n');
-    document.getElementById('converted').value = ''; // 清空转换结果
+  let results = [];
+  patterns.forEach(regex=>{
+    let m;
+    while ((m = regex.exec(text)) !== null) {
+      // m[1] id, m[2] token (if present)
+      if (m[1] && m[2]) {
+        results.push((m[1] + ' ' + m[2]).trim());
+      }
+    }
+  });
+
+  // Also try to capture lines that already look like "id token" separated by whitespace
+  const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l);
+  lines.forEach(line=>{
+    const m = line.match(/^(\d+-\d+)\s+(\S+)/);
+    if (m) results.push(m[1] + ' ' + m[2]);
+  });
+
+  // normalize: trim, dedupe, remove empty, sort
+  results = results.map(r=>r.trim()).filter(r=>r);
+  results = Array.from(new Set(results));
+  results.sort((a,b)=>a.localeCompare(b,'zh'));
+
+  document.getElementById('extracted').value = results.join('\n');
+  document.getElementById('converted').value = '';
+}
+
+function padNumberCustom(n){
+  // n is 1-based index
+  if (n < 100) {
+    return String(n).padStart(2,'0');
+  } else {
+    return String(n).padStart(3,'0');
+  }
 }
 
 function convert() {
-    const extracted = document.getElementById('extracted').value.trim();
-    if (!extracted) {
-        alert('请先提取数据！');
-        return;
-    }
-    const lines = extracted.split('\n');
-    const prefix = document.getElementById('prefix').value || 'ID';
-    const converted = lines.map((line, idx) => {
-        const [id, token] = line.split(' ');
-        let num = idx + 1;
-        let numStr = num < 100 ? String(num).padStart(2,'0') : String(num).padStart(3,'0');
-        return `${prefix}${numStr},${id},${token}`;
-    }).join('\n');
-    document.getElementById('converted').value = converted;
+  const extracted = document.getElementById('extracted').value.trim();
+  if (!extracted) {
+    alert('请先提取数据！');
+    return;
+  }
+  const lines = extracted.split(/\n+/);
+  const prefix = document.getElementById('prefix').value || 'ID';
+  const converted = lines.map((line, idx) => {
+    const parts = line.trim().split(/\s+/);
+    const id = parts[0] || '';
+    const token = parts.slice(1).join(' ') || '';
+    const n = idx + 1;
+    const num = padNumberCustom(n);
+    return `${prefix}${num},${id},${token}`;
+  }).join('\n');
+  document.getElementById('converted').value = converted;
 }
 
 function clearAll() {
-    document.getElementById('inputText').value = '';
-    document.getElementById('extracted').value = '';
-    document.getElementById('converted').value = '';
+  document.getElementById('inputText').value = '';
+  document.getElementById('extracted').value = '';
+  document.getElementById('converted').value = '';
 }
 
 function copyResult(id) {
-    const textarea = document.getElementById(id);
-    textarea.select();
-    document.execCommand('copy');
-    alert('✅ 已复制！');
+  const ta = document.getElementById(id);
+  ta.select();
+  document.execCommand('copy');
+  alert('✅ 已复制到剪贴板');
 }
 
 function downloadResult() {
-    let content = document.getElementById('converted').value.trim();
-    let filename = '';
-    if (content) {
-        filename = (document.getElementById('prefix').value || 'ID') + '.txt';
-    } else {
-        content = document.getElementById('extracted').value.trim();
-        filename = 'token.txt';
-    }
-    if (!content) {
-        alert('没有内容可以下载！');
-        return;
-    }
-    const blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
+  let content = document.getElementById('converted').value.trim();
+  let filename = '';
+  if (content) {
+    filename = (document.getElementById('prefix').value || 'ID') + '.txt';
+  } else {
+    content = document.getElementById('extracted').value.trim();
+    filename = 'token.txt';
+  }
+  if (!content) {
+    alert('没有内容可以下载！');
+    return;
+  }
+  const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
 }
 </script>
 </body>
