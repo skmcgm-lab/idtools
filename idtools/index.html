@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>💎 密钥 & 提取 & 转换 — 最终版</title>
+<title>💎 密钥 & 提取 & 转换 — 保持原始顺序版</title>
 <style>
   body { background:#0b0b0b; color:#ffd966; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; padding:20px; }
   h1 { text-align:center; margin-bottom:8px; font-size:22px; }
@@ -22,10 +22,10 @@
 </head>
 <body>
 <div class="container">
-  <h1>💎 密钥 & 提取 & 转换 — 最终版（简洁黑金）</h1>
+  <h1>💎 密钥 & 提取 & 转换 — 最终版</h1>
 
   <div class="controls">
-    <a class="btn" href="https://qm.qq.com/q/3a2BdBptwA" target="_blank">💎 买插件联系</a>
+    <a class="btn" href="https://qm.qq.com/q/3a2BdBptwA" target="_blank">💎 买插件点我</a>
     <label for="prefix">转换前缀：</label>
     <input id="prefix" class="prefix-input" value="ID" />
     <button class="btn" onclick="extract()">提取</button>
@@ -48,9 +48,9 @@
     <textarea id="converted" readonly></textarea>
   </div>
 
-  <p class="note">说明：支持多种输入格式（ID:.. Pass:.. / 15-12345678 token / 序号,ID,token / JSON / 账号：ID 密钥：token / 以及 + / / : = 等分隔），自动去重、还原 "\n" 为换行并排序。</p>
+  <p class="note">说明：此版本保留原始文本顺序，不自动排序；仍支持多种格式识别、去重、编号。</p>
 
-  <footer>生成器 · 版本：最终版（动态编号：1-99 两位、100+ 三位）</footer>
+  <footer>生成器 · 顺序保持版（编号自动按原始顺序递增）</footer>
 </div>
 
 <script>
@@ -76,31 +76,28 @@ function extract() {
   patterns.forEach(regex=>{
     let m;
     while ((m = regex.exec(text)) !== null) {
-      // m[1] id, m[2] token (if present)
       if (m[1] && m[2]) {
         results.push((m[1] + ' ' + m[2]).trim());
       }
     }
   });
 
-  // Also try to capture lines that already look like "id token" separated by whitespace
+  // 同时捕捉已是 "id token" 格式的行
   const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l);
   lines.forEach(line=>{
     const m = line.match(/^(\d+-\d+)\s+(\S+)/);
     if (m) results.push(m[1] + ' ' + m[2]);
   });
 
-  // normalize: trim, dedupe, remove empty, sort
+  // ✅ 保留原始顺序，仅去重，不排序
   results = results.map(r=>r.trim()).filter(r=>r);
   results = Array.from(new Set(results));
-  results.sort((a,b)=>a.localeCompare(b,'zh'));
 
   document.getElementById('extracted').value = results.join('\n');
   document.getElementById('converted').value = '';
 }
 
 function padNumberCustom(n){
-  // n is 1-based index
   if (n < 100) {
     return String(n).padStart(2,'0');
   } else {
