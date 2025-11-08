@@ -58,17 +58,17 @@ function extract() {
   const text = raw.replace(/\r/g,'').replace(/\\n/g,'\n');
 
   const patterns = [
-    /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g, // ID: ... Pass: ...
-    /^\s*(\d+-\d+)\s+(\S+)/gm, // 21-xxxx token
-    /^\s*\d+\s+(\d+-\d+)\s+(\S+)/gm, // 带序号 1 21-xxx token
-    /^\s*\d{4},(\d+-\d+),(\S+)/gm, // 0001,21-xxx,token
-    /(\d+-\d+):(\S+)/gm, // 21-xxx:token
-    /(\d+-\d+)=(\S+)/gm, // 21-xxx=token
-    /账号[:：]\s*(\d+-\d+)[\s,，]+(?:密钥|token|pass)[:：]?\s*(\S+)/gi, // 账号：ID 密钥：token
-    /"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"(\S+?)"/gi, // JSON格式
-    /(\d+-\d+)\+(\S+)/gm, // 21-xxx+token
-    /(\d+-\d+)\/(\S+)/gm, // 21-xxx/token
-    /^[^,\n]*?,\s*(\d+-\d+)\s*,\s*([A-Za-z0-9]+)\s*$/gm // 新增：名称,ID,token
+    /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g,
+    /^\s*(\d+-\d+)\s+(\S+)/gm,
+    /^\s*\d+\s+(\d+-\d+)\s+(\S+)/gm,
+    /^\s*\d{4},(\d+-\d+),(\S+)/gm,
+    /(\d+-\d+):(\S+)/gm,
+    /(\d+-\d+)=(\S+)/gm,
+    /账号[:：]\s*(\d+-\d+)[\s,，]+(?:密钥|token|pass)[:：]?\s*(\S+)/gi,
+    /"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"(\S+?)"/gi,
+    /(\d+-\d+)\+(\S+)/gm,
+    /(\d+-\d+)\/(\S+)/gm,
+    /^[^,\n]*?,\s*(\d+-\d+)\s*,\s*([A-Za-z0-9]+)\s*$/gm
   ];
 
   let results = [];
@@ -81,14 +81,12 @@ function extract() {
     }
   });
 
-  // 捕捉已是 "id token" 格式的行
   const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l);
   lines.forEach(line=>{
     const m = line.match(/^(\d+-\d+)\s+(\S+)/);
     if (m) results.push(m[1] + ' ' + m[2]);
   });
 
-  // ✅ 保留原始顺序，仅去重，不排序
   results = results.map(r=>r.trim()).filter(r=>r);
   results = Array.from(new Set(results));
 
@@ -96,9 +94,13 @@ function extract() {
   document.getElementById('converted').value = '';
 }
 
+// ✅ 修改后的编号逻辑
 function padNumberCustom(n){
-  if (n < 100) return String(n).padStart(2,'0');
-  return String(n).padStart(3,'0');
+  if (n <= 99) {
+    return String(n).padStart(2, '0'); // 01-99
+  } else {
+    return String(n).padStart(3, '0'); // 001-999
+  }
 }
 
 function convert() {
@@ -107,15 +109,23 @@ function convert() {
     alert('请先提取数据！');
     return;
   }
+
   const lines = extracted.split(/\n+/);
   const prefix = document.getElementById('prefix').value || 'ID';
+
+  // 判断总行数决定编号位数
+  const useThreeDigits = lines.length >= 100;
+
   const converted = lines.map((line, idx) => {
     const parts = line.trim().split(/\s+/);
     const id = parts[0] || '';
     const token = parts.slice(1).join(' ') || '';
-    const num = padNumberCustom(idx + 1);
+    const num = useThreeDigits
+      ? String(idx + 1).padStart(3, '0')  // 全部三位
+      : String(idx + 1).padStart(2, '0'); // 全部两位
     return `${prefix}${num},${id},${token}`;
   }).join('\n');
+
   document.getElementById('converted').value = converted;
 }
 
