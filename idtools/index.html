@@ -14,7 +14,7 @@
   .btn:hover{background:#b88a00;color:#0b0b0b;box-shadow:0 6px 18px rgba(184,138,0,0.18);}
   .copy-btn{position:absolute;right:8px;top:8px;padding:6px 10px;font-size:12px}
   .result-wrap{position:relative;margin-bottom:18px;}
-  label{margin-right:8px}
+  label{margin-right:4px;}
   .prefix-input{width:120px;padding:6px;background:#111;border:1px solid #333;color:#ffd966;border-radius:6px;}
   footer{margin-top:18px;font-size:13px;color:#bfbfbf;text-align:center;}
   .note{font-size:13px;color:#e6c86b}
@@ -25,8 +25,12 @@
   <h1>💎 密钥 & 提取 & 转换 — 终极版</h1>
 
   <div class="controls">
-    <label for="prefix">转换前缀：</label>
+    <label for="prefix">前缀：</label>
     <input id="prefix" class="prefix-input" value="ID" />
+
+    <label for="startNum">起始编号：</label>
+    <input id="startNum" class="prefix-input" placeholder="如 50 / 090 / 005" />
+
     <button class="btn" onclick="extract()">提取</button>
     <button class="btn" onclick="convert()">转换</button>
     <button class="btn" onclick="clearAll()">清空</button>
@@ -47,9 +51,9 @@
     <textarea id="converted" readonly></textarea>
   </div>
 
-  <p class="note">说明：支持所有常见格式（ID:.. / 21-123456 token / 名称,ID,token 等），保持原始顺序，自动编号。</p>
+  <p class="note">支持所有常见格式，保持顺序，自定义编号，自动补零。</p>
 
-  <footer>💎 终极整合版 · 原始顺序 + 多格式识别</footer>
+  <footer>💎 终极整合版 · 多格式识别 + 自定义编号</footer>
 </div>
 
 <script>
@@ -75,9 +79,7 @@ function extract() {
   patterns.forEach(regex=>{
     let m;
     while ((m = regex.exec(text)) !== null) {
-      if (m[1] && m[2]) {
-        results.push((m[1] + ' ' + m[2]).trim());
-      }
+      if (m[1] && m[2]) results.push((m[1] + ' ' + m[2]).trim());
     }
   });
 
@@ -87,22 +89,13 @@ function extract() {
     if (m) results.push(m[1] + ' ' + m[2]);
   });
 
-  results = results.map(r=>r.trim()).filter(r=>r);
-  results = Array.from(new Set(results));
+  results = Array.from(new Set(results.map(r => r.trim()).filter(r=>r)));
 
   document.getElementById('extracted').value = results.join('\n');
   document.getElementById('converted').value = '';
 }
 
-// ✅ 修改后的编号逻辑
-function padNumberCustom(n){
-  if (n <= 99) {
-    return String(n).padStart(2, '0'); // 01-99
-  } else {
-    return String(n).padStart(3, '0'); // 001-999
-  }
-}
-
+// 🔥 终极自定义编号版本
 function convert() {
   const extracted = document.getElementById('extracted').value.trim();
   if (!extracted) {
@@ -112,23 +105,36 @@ function convert() {
 
   const lines = extracted.split(/\n+/);
   const prefix = document.getElementById('prefix').value || 'ID';
+  let startNumRaw = document.getElementById('startNum').value.trim();
 
-  // 判断总行数决定编号位数
-  const useThreeDigits = lines.length >= 100;
+  let useCustomStart = startNumRaw !== '';
+  let startNum = parseInt(startNumRaw || '1', 10);
 
   const converted = lines.map((line, idx) => {
     const parts = line.trim().split(/\s+/);
     const id = parts[0] || '';
     const token = parts.slice(1).join(' ') || '';
-    const num = useThreeDigits
-      ? String(idx + 1).padStart(3, '0')  // 全部三位
-      : String(idx + 1).padStart(2, '0'); // 全部两位
+
+    // 当前编号
+    let current = useCustomStart ? startNum + idx : idx + 1;
+
+    // 补零长度
+    let padLength = 2;
+    if (useCustomStart) {
+      padLength = startNumRaw.length; // 和输入一致 例如“090”→3位
+    } else {
+      if (lines.length >= 100) padLength = 3; // 原逻辑
+    }
+
+    const num = String(current).padStart(padLength, '0');
+
     return `${prefix}${num},${id},${token}`;
   }).join('\n');
 
   document.getElementById('converted').value = converted;
 }
 
+// 其余功能保持不变
 function clearAll() {
   document.getElementById('inputText').value = '';
   document.getElementById('extracted').value = '';
@@ -139,7 +145,7 @@ function copyResult(id) {
   const ta = document.getElementById(id);
   ta.select();
   document.execCommand('copy');
-  alert('✅ 已复制到剪贴板');
+  alert('已复制');
 }
 
 function downloadResult() {
