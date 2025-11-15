@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>💎 密钥 & 提取 & 转换 — 终极整合版（保持顺序 + 全格式支持）</title>
+<title>💎 密钥提取 & 转换 · Key Extract & Convert — 双语版</title>
 <style>
-  body { background:#0b0b0b; color:#ffd966; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; padding:20px; }
+  body { background:#0b0b0b; color:#ffd966; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; padding:20px; transition:0.3s; }
   h1 { text-align:center; margin-bottom:8px; font-size:22px; }
   .container{max-width:980px;margin:0 auto;}
   .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
@@ -15,52 +15,125 @@
   .copy-btn{position:absolute;right:8px;top:8px;padding:6px 10px;font-size:12px}
   .result-wrap{position:relative;margin-bottom:18px;}
   label{margin-right:4px;}
-  .prefix-input{width:120px;padding:6px;background:#111;border:1px solid #333;color:#ffd966;border-radius:6px;}
+  .prefix-input{width:120px;padding:6px;background:#111;border:1px solid:#333;color:#ffd966;border-radius:6px;}
   footer{margin-top:18px;font-size:13px;color:#bfbfbf;text-align:center;}
   .note{font-size:13px;color:#e6c86b}
+  .lang-btn{position:fixed;top:18px;right:18px;padding:8px 14px;font-size:13px;border-radius:6px;background:#111;border:1px solid #b88a00;cursor:pointer;color:#ffd966;}
+  .lang-btn:hover{background:#b88a00;color:#0b0b0b;}
 </style>
 </head>
 <body>
+
+<button id="langBtn" class="lang-btn">English</button>
+
 <div class="container">
-  <h1>💎 密钥 & 提取 & 转换 — 终极版</h1>
+  <h1 id="title">💎 密钥提取 & 转换 (双语版)</h1>
 
   <div class="controls">
-    <label for="prefix">前缀：</label>
+    <label for="prefix" id="labelPrefix">前缀：</label>
     <input id="prefix" class="prefix-input" value="ID" />
 
-    <label for="startNum">起始编号：</label>
+    <label for="startNum" id="labelStart">起始编号：</label>
     <input id="startNum" class="prefix-input" placeholder="如 50 / 090 / 005" />
 
-    <button class="btn" onclick="extract()">提取</button>
-    <button class="btn" onclick="convert()">转换</button>
-    <button class="btn" onclick="clearAll()">清空</button>
-    <button class="btn" onclick="downloadResult()">下载</button>
+    <button class="btn" id="btnExtract" onclick="extract()">提取</button>
+    <button class="btn" id="btnConvert" onclick="convert()">转换</button>
+    <button class="btn" id="btnClear" onclick="clearAll()">清空</button>
+    <button class="btn" id="btnDownload" onclick="downloadResult()">下载</button>
   </div>
 
-  <textarea id="inputText" placeholder="在这里粘贴你的原始文本..."></textarea>
+  <textarea id="inputText" placeholder="在此粘贴原始数据..."></textarea>
 
-  <h2>提取结果</h2>
+  <h2 id="exTitle">提取结果</h2>
   <div class="result-wrap">
-    <button class="btn copy-btn" onclick="copyResult('extracted')">📋 一键复制</button>
+    <button class="btn copy-btn" id="btnCopyExtract" onclick="copyResult('extracted')">📋 复制</button>
     <textarea id="extracted" readonly></textarea>
   </div>
 
-  <h2>转换结果</h2>
+  <h2 id="cvTitle">转换结果</h2>
   <div class="result-wrap">
-    <button class="btn copy-btn" onclick="copyResult('converted')">📋 一键复制</button>
+    <button class="btn copy-btn" id="btnCopyConvert" onclick="copyResult('converted')">📋 复制</button>
     <textarea id="converted" readonly></textarea>
   </div>
 
-  <p class="note">支持所有常见格式，保持顺序，自定义编号，自动补零。</p>
-
-  <footer>💎 终极整合版 · 多格式识别 + 自定义编号</footer>
+  <p class="note" id="note">支持所有格式，保持顺序，自定义编号，自动补零。</p>
+  <footer id="footer">💎 双语终极版 · Bilingual Ultimate Edition</footer>
 </div>
 
 <script>
+// -------------------- 多语言字典 --------------------
+const lang = {
+  zh: {
+    title: "💎 密钥提取 & 转换 (双语版)",
+    prefix: "前缀：",
+    start: "起始编号：",
+    extract: "提取",
+    convert: "转换",
+    clear: "清空",
+    download: "下载",
+    placeholder: "在此粘贴原始数据...",
+    exTitle: "提取结果",
+    cvTitle: "转换结果",
+    copy: "📋 复制",
+    note: "支持所有格式，保持顺序，自定义编号，自动补零。",
+    copied: "已复制！",
+    noData: "请先提取数据！",
+    noDownload: "没有内容可下载！",
+    footer: "💎 双语终极版 · Bilingual Ultimate Edition",
+    langBtn: "English"
+  },
+  en: {
+    title: "💎 Key Extract & Convert (Bilingual Version)",
+    prefix: "Prefix:",
+    start: "Start No.:",
+    extract: "Extract",
+    convert: "Convert",
+    clear: "Clear",
+    download: "Download",
+    placeholder: "Paste your raw data here...",
+    exTitle: "Extracted Result",
+    cvTitle: "Converted Result",
+    copy: "📋 Copy",
+    note: "Supports all formats, keeps order, custom numbering, auto zero-padding.",
+    copied: "Copied!",
+    noData: "Please extract data first!",
+    noDownload: "No content to download!",
+    footer: "💎 Bilingual Ultimate Edition",
+    langBtn: "中文"
+  }
+};
+
+let currentLang = "zh";
+
+// -------------------- 切换语言 --------------------
+document.getElementById("langBtn").onclick = () => {
+  currentLang = currentLang === "zh" ? "en" : "zh";
+  applyLang();
+};
+
+function applyLang() {
+  const L = lang[currentLang];
+  document.getElementById("title").innerText = L.title;
+  document.getElementById("labelPrefix").innerText = L.prefix;
+  document.getElementById("labelStart").innerText = L.start;
+  document.getElementById("btnExtract").innerText = L.extract;
+  document.getElementById("btnConvert").innerText = L.convert;
+  document.getElementById("btnClear").innerText = L.clear;
+  document.getElementById("btnDownload").innerText = L.download;
+  document.getElementById("inputText").placeholder = L.placeholder;
+  document.getElementById("exTitle").innerText = L.exTitle;
+  document.getElementById("cvTitle").innerText = L.cvTitle;
+  document.getElementById("btnCopyExtract").innerText = L.copy;
+  document.getElementById("btnCopyConvert").innerText = L.copy;
+  document.getElementById("note").innerText = L.note;
+  document.getElementById("footer").innerText = L.footer;
+  document.getElementById("langBtn").innerText = L.langBtn;
+}
+
+// -------------------- 以下原逻辑保持不变 --------------------
 function extract() {
   const raw = document.getElementById('inputText').value || '';
   const text = raw.replace(/\r/g,'').replace(/\\n/g,'\n');
-
   const patterns = [
     /ID\s*:\s*(\S+)[\r\n]+Pass:\s*(\S+)/g,
     /^\s*(\d+-\d+)\s+(\S+)/gm,
@@ -95,18 +168,16 @@ function extract() {
   document.getElementById('converted').value = '';
 }
 
-// 🔥 终极自定义编号版本
 function convert() {
   const extracted = document.getElementById('extracted').value.trim();
   if (!extracted) {
-    alert('请先提取数据！');
+    alert(lang[currentLang].noData);
     return;
   }
 
   const lines = extracted.split(/\n+/);
   const prefix = document.getElementById('prefix').value || 'ID';
   let startNumRaw = document.getElementById('startNum').value.trim();
-
   let useCustomStart = startNumRaw !== '';
   let startNum = parseInt(startNumRaw || '1', 10);
 
@@ -115,17 +186,8 @@ function convert() {
     const id = parts[0] || '';
     const token = parts.slice(1).join(' ') || '';
 
-    // 当前编号
     let current = useCustomStart ? startNum + idx : idx + 1;
-
-    // 补零长度
-    let padLength = 2;
-    if (useCustomStart) {
-      padLength = startNumRaw.length; // 和输入一致 例如“090”→3位
-    } else {
-      if (lines.length >= 100) padLength = 3; // 原逻辑
-    }
-
+    let padLength = useCustomStart ? startNumRaw.length : (lines.length >= 100 ? 3 : 2);
     const num = String(current).padStart(padLength, '0');
 
     return `${prefix}${num},${id},${token}`;
@@ -134,7 +196,6 @@ function convert() {
   document.getElementById('converted').value = converted;
 }
 
-// 其余功能保持不变
 function clearAll() {
   document.getElementById('inputText').value = '';
   document.getElementById('extracted').value = '';
@@ -145,7 +206,7 @@ function copyResult(id) {
   const ta = document.getElementById(id);
   ta.select();
   document.execCommand('copy');
-  alert('已复制');
+  alert(lang[currentLang].copied);
 }
 
 function downloadResult() {
@@ -158,7 +219,7 @@ function downloadResult() {
     filename = 'token.txt';
   }
   if (!content) {
-    alert('没有内容可以下载！');
+    alert(lang[currentLang].noDownload);
     return;
   }
   const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
@@ -167,6 +228,10 @@ function downloadResult() {
   link.download = filename;
   link.click();
 }
+
+// 初始化为当前语言
+applyLang();
 </script>
+
 </body>
 </html>
