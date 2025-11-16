@@ -20,7 +20,6 @@
   .note{font-size:13px;color:#e6c86b}
   .lang-btn{position:fixed;top:18px;right:18px;padding:8px 14px;font-size:13px;border-radius:6px;background:#111;border:1px solid:#b88a00;cursor:pointer;color:#ffd966;}
 
-  /* ===== 统计面板 ===== */
   .stat-box{
     background:#111; border:1px solid #b88a00; padding:10px 14px;
     border-radius:8px; margin-bottom:15px; line-height:22px; font-size:14px;
@@ -28,7 +27,6 @@
   }
   .stat-item{min-width:200px;}
 
-  /* ===== Toast 提示 ===== */
   .toast {
     position: fixed;
     top: 18px;
@@ -89,7 +87,7 @@
 </div>
 
 <script>
-/* 多语言字典 */
+/* 多语言 */
 const lang={
   zh:{title:"💎 密钥提取 & 转换 (双语版)",prefix:"前缀：",start:"起始编号：",extract:"提取",convert:"转换",clear:"清空",download:"下载",
       placeholder:"在此粘贴原始数据...",exTitle:"提取结果",cvTitle:"转换结果",copy:"📋 复制",note:"支持所有格式，保持顺序，自定义编号，自动补零。",
@@ -101,7 +99,6 @@ const lang={
       langBtn:"中文",statTitle:"Statistics",st_total:"📄 Total Lines:",st_valid:"🟢 Extracted:",st_invalid:"⚠ Unrecognized:"}};
 let currentLang="zh";
 
-/* 切换语言 */
 function applyLang(){
   const L=lang[currentLang];
   title.innerText=L.title;
@@ -121,33 +118,37 @@ function applyLang(){
   langBtn.innerText=L.langBtn;
   statTitle.innerText=L.statTitle;
 
-  statTotal.innerText=L.st_total + (statTotal.dataset.val||0);
-  statValid.innerText=L.st_valid + (statValid.dataset.val||0);
-  statInvalid.innerText=L.st_invalid + (statInvalid.dataset.val||0);
+  statTotal.innerText=L.st_total+(statTotal.dataset.val||0);
+  statValid.innerText=L.st_valid+(statValid.dataset.val||0);
+  statInvalid.innerText=L.st_invalid+(statInvalid.dataset.val||0);
 }
 langBtn.onclick=()=>{currentLang=currentLang==="zh"?"en":"zh";applyLang();};
 
-/* 提取 */
+/* 提取逻辑 */
 function extract(){
   const raw=inputText.value||'';
   const lines=raw.replace(/\r/g,'').trim().split(/\n+/).map(l=>l.trim()).filter(Boolean);
   let all=[]; let m;
 
-  // 匹配 block 格式
+  // 新格式：任意内容…ID-token…
+  const custom=/(\d+-\d+)-([A-Za-z0-9\-_]{16,})/g;
+  while((m=custom.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
+
+  // block
   const block=/ID\s*[:=]\s*(\d+-\d+)[\s\S]*?Pass\s*[:=]\s*([A-Za-z0-9\-_]+)/gi;
   while((m=block.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
 
-  // 匹配 csv
+  // csv
   lines.forEach(l=>{
     const csv=l.match(/^[A-Za-z0-9]+,\s*(\d+-\d+),\s*([A-Za-z0-9\-_]+)$/);
     if(csv) all.push(`${csv[1]} ${csv[2]}`);
   });
 
-  // 匹配 单行
+  // 单行
   const single=/(\d+-\d+)[\s,=:+\/]+([A-Za-z0-9\-_]{8,})/g;
   while((m=single.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
 
-  // 匹配 JSON
+  // JSON
   const json=/"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"([A-Za-z0-9\-_]+)"/gi;
   while((m=json.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
 
@@ -161,7 +162,6 @@ function extract(){
   updateStats(lines.length,unique.length,lines.length-unique.length);
 }
 
-/* 更新统计 */
 function updateStats(total,valid,invalid){
   const L=lang[currentLang];
   statTotal.dataset.val=total;
@@ -172,17 +172,15 @@ function updateStats(total,valid,invalid){
   statInvalid.innerText=L.st_invalid+invalid;
 }
 
-/* ✅ 修复后的转换功能 */
+/* 转换 */
 function convert(){
   const text=document.getElementById("extracted").value.trim();
   if(!text){toast(lang[currentLang].noData);return;}
 
   const lines=text.split(/\n+/);
-
   const prefix=document.getElementById("prefix").value || "ID";
   let start=document.getElementById("startNum").value.trim();
   let startNo=parseInt(start||"1",10);
-
   const custom=start!==''; 
   const pad=(lines.length>=100?3:2);
 
@@ -219,7 +217,7 @@ function toast(msg){
   setTimeout(()=>{div.style.opacity="0";setTimeout(()=>div.remove(),350);},1600);
 }
 
-/* 下载文件 */
+/* 下载 */
 function downloadResult(){
   let content=converted.value.trim();
   let name="";
