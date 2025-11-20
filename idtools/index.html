@@ -7,50 +7,24 @@
 <style>
   html,body{margin:0;padding:0;height:100%;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;}
   body{background:#000;display:flex;flex-direction:column;font-family:system-ui,-apple-system,sans-serif;color:#fff;}
-
   #bg-wrapper{position:fixed;left:50%;top:50%;width:120vmin;height:120vmin;transform:translate(-50%,-50%);animation:float 18s ease-in-out infinite;z-index:-2;pointer-events:none;}
   #my-bg{width:100%;height:100%;background:url('https://i.imgur.com/hyFUynh.png') center/cover no-repeat;border-radius:50%;box-shadow:0 0 100px rgba(0,0,0,0.9);animation:rotate 50s linear infinite;opacity:0.98;filter:brightness(1.2) contrast(1.15) saturate(1.3);clip-path:circle(50%);}
   @keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
   @keyframes float{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-48%) scale(1.06)}}
-
   .overlay{position:fixed;inset:0;background:linear-gradient(135deg,rgba(0,0,0,0.18),rgba(30,0,60,0.32));z-index:-1;pointer-events:none;}
-
   .container{width:92vw;max-width:920px;margin:0 auto;padding:12px 0 60px;flex:1;display:flex;flex-direction:column;gap:14px;min-height:100vh;}
-
   .card{background:rgba(8,12,38,0.34)!important;backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.2);border-radius:22px;padding:18px 22px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
-
   h1{font-size:24px;margin:0 0 10px;text-align:center;line-height:1.4;}
   textarea{width:100%;height:180px!important;padding:14px;border-radius:16px;border:none;background:rgba(255,255,255,0.15);color:#fff;font:17px/1.8 Consolas,monospace;resize:none;box-sizing:border-box;}
   #in{height:200px!important;} #e,#c{height:170px!important;}
   .row{margin:12px 0 10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:15px;}
   input[type=text]{width:110px;padding:10px 14px;border-radius:12px;border:none;background:rgba(255,255,255,0.25);color:#fff;font-size:16px;}
-
-  button{
-    padding:12px 30px;
-    border:none;
-    border-radius:20px;
-    font-weight:700;
-    font-size:16px;
-    color:#fff;
-    box-shadow:0 8px 25px rgba(0,0,0,0.6);
-    transition:all 0.3s;
-    cursor:pointer;
-  }
+  button{padding:12px 30px;border:none;border-radius:20px;font-weight:700;font-size:16px;color:#fff;box-shadow:0 8px 25px rgba(0,0,0,0.6);transition:all 0.3s;cursor:pointer;}
   button:hover{transform:translateY(-4px) scale(1.06);box-shadow:0 12px 35px rgba(0,0,0,0.8);}
-
   #go{background:#166534 !important;}
   #clear{background:#991b1b !important;}
-
-  /* 终极蓝按钮 - 绝对不会再被覆盖 */
-  button.action-btn{
-    background:#3b82f6 !important;
-    color:#fff !important;
-  }
-  button.action-btn:hover{
-    background:#2563eb !important;
-    color:#fff !important;
-  }
-
+  button.action-btn{background:#3b82f6 !important;color:#fff !important;}
+  button.action-btn:hover{background:#2563eb !important;}
   .stats{display:flex;gap:18px;margin:8px 0;font-size:15px;flex-wrap:wrap;}
   .stat{background:rgba(96,165,250,0.3);padding:8px 16px;border-radius:18px;font-weight:700}
   h2{font-size:18px;margin:0 0 10px;line-height:1.4;}
@@ -105,31 +79,55 @@
 function toast(zh,en=''){let x=document.getElementById('toast');x.textContent=zh+(en?' / '+en:'');x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200);}
 
 function run(){
-  let orig = document.getElementById('in').value;
-  let text = orig.toLowerCase() + '\n' + orig;
-  let set = new Set();
+  let text = document.getElementById('in').value;
+  let lines = text.split(/\r?\n/);
+  let seen = new Set();
+  let list = [];
 
-  const patterns = [
-    /id\s*[:：]?\s*(\d{1,3}-\d{8})\b[\s\S]*?pass\s*[:：]?\s*([a-z0-9]{30,})/gi,
-    /id\s*[:：]?\s*(\d{1,3}-\d{8})\b[\s\S]*?token\s*[:：]?\s*([a-z0-9]{30,})/gi,
-    /account\s*[:：]?\s*(\d{1,3}-\d{8})\b[\s\S]*?pass\s*[:：]?\s*([a-z0-9]{30,})/gi,
-    /用户\s*id\s*[:：]?\s*(\d{1,3}-\d{8})\b[\s\S]*?(?:密码|pass|token|口令)\s*[:：]?\s*([a-z0-9]{30,})/gi,
-    /\[?id\]?\s*[:：]?\s*(\d{1,3}-\d{8})\b[\s\S]*?\[?pass\]?\s*[:：]?\s*([a-z0-9]{30,})/gi,
-    /(\d{1,3}-\d{8})\s*[|:：\-]\s*([a-z0-9]{30,})/gi,
-    /(\d{1,3}-\d{8})\s+([a-z0-9]{30,})/g
-  ];
-  patterns.forEach(regex => {let m;while ((m = regex.exec(text)) !== null) {let id = m[1].trim();let token = m[2].trim().toLowerCase();if (/^\d{1,3}-\d{8}$/.test(id) && /^[a-z0-9]{30,}$/.test(token)) set.add(id + ' ' + token);}});
-  let lines = orig.split('\n');
-  lines.forEach(line => {let idMatch = line.match(/\b(\d{1,3}-\d{8})\b/);let tokenMatch = line.match(/\b([a-z0-9]{30,50})\b/i);if (idMatch && tokenMatch) set.add(idMatch[1] + ' ' + tokenMatch[1].toLowerCase());});
-  let list = Array.from(set).sort();
+  // 1. 支持 "ID : xxx" + "Pass: xxx" + "=====" 这种经典三行格式（跨行匹配）
+  let classicBlock = null;
+  for (let line of lines) {
+    let l = line.trim();
+    if (/^ID\s*[:：]\s*\d{1,3}-\d{8}/.test(l)) {
+      classicBlock = {id: l.match(/\d{1,3}-\d{8}/)[0]};
+    } else if (classicBlock && /^Pass\s*[:：]\s*[a-z0-9]{30,}/i.test(l)) {
+      let token = l.match(/[a-z0-9]{30,}/i)[0].toLowerCase();
+      let pair = classicBlock.id + ' ' + token;
+      if (!seen.has(pair)) {
+        seen.add(pair);
+        list.push(pair);
+      }
+      classicBlock = null;
+    } else if (classicBlock && /^[=]+/.test(l)) {
+      classicBlock = null; // 跳过分隔线
+    }
+  }
+
+  // 2. 逐行暴力提取（支持所有混在一起的格式）
+  for (let rawLine of lines) {
+    let line = rawLine.trim();
+    if (!line) continue;
+
+    let ids = [...rawLine.matchAll(/\b(\d{1,3}-\d{8})\b/g)].map(m => m[1]);
+    let tokens = [...rawLine.matchAll(/\b([a-z0-9]{30,50})\b/gi)].map(m => m[1].toLowerCase());
+
+    for (let id of ids) {
+      for (let token of tokens) {
+        let pair = id + ' ' + token;
+        if (!seen.has(pair)) {
+          seen.add(pair);
+          list.push(pair);
+        }
+      }
+    }
+  }
+
   let total = lines.filter(l => l.trim()).length;
   document.getElementById('e').value = list.join('\n');
 
   let pre = document.getElementById('pre').value.trim() || 'ID';
   let start = parseInt(document.getElementById('start').value) || 1;
   if (isNaN(start)) start = 1;
-
-  // 关键修复：自动计算最大编号需要的位数（完美对齐）
   let maxNum = start + list.length - 1;
   let pad = Math.max(2, String(maxNum).length);
 
@@ -146,7 +144,7 @@ function run(){
 }
 
 document.getElementById('go').onclick = run;
-document.getElementById('clear').onclick = () => {['in','e','c'].forEach(id => document.getElementById(id).value = '');document.getElementById('tl').textContent = document.getElementById('ok').textContent = document.getElementById('no').textContent = '0';toast('已清空 / Cleared');};
+document.getElementById('clear').onclick = () => {['in','e','c'].forEach(id => document.getElementById(id).value = '');['tl','ok','no'].forEach(id => document.getElementById(id).textContent = '0');toast('已清空 / Cleared');};
 function copy(x){let el=document.getElementById(x=='e'?'e':'c');el.select();document.execCommand('copy');toast('已复制 / Copied');}
 function save(x){let text=document.getElementById(x=='e'?'e':'c').value;if(!text) return toast('无内容 / Empty');let blob=new Blob([text],{type:'text/plain'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download = x=='e' ? 'ID_TOKEN.txt' : 'ID_Numbered.txt';a.click();toast('下载完成 / Downloaded');}
 let last=''; setInterval(()=>{let now=document.getElementById('in').value;if(now!==last && now.trim()){last=now;run();}}, 800);
