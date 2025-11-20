@@ -1,243 +1,163 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html>
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>💎 密钥提取 & 转换 · Key Extract & Convert — 双语版</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ID Token 一键提取工具 | ID Token Extractor</title>
 <style>
-  body { background:#0b0b0b; color:#ffd966; font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif; padding:20px; }
-  h1 { text-align:center; margin-bottom:8px; font-size:22px; }
-  .container{max-width:980px;margin:0 auto;}
-  .controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
-  textarea{width:100%;height:160px;background:#111;border:1px solid:#333;color:#ffd966;padding:12px;font-family:monospace;font-size:14px;resize:vertical;}
-  .btn{background:#111;border:1px solid:#b88a00;color:#ffd966;padding:8px 14px;border-radius:6px;cursor:pointer;}
-  .btn:hover{background:#b88a00;color:#0b0b0b;box-shadow:0 6px 18px rgba(184,138,0,0.18);}
-  .copy-btn{position:absolute;right:8px;top:8px;padding:6px 10px;font-size:12px}
-  .result-wrap{position:relative;margin-bottom:18px;}
-  label{margin-right:6px;color:#ffd966}
-  .prefix-input{width:120px;padding:6px;background:#111;border:1px solid:#333;color:#ffd966;border-radius:6px;}
-  footer{margin-top:18px;font-size:13px;color:#bfbfbf;text-align:center;}
-  .note{font-size:13px;color:#e6c86b}
-  .lang-btn{position:fixed;top:18px;right:18px;padding:8px 14px;font-size:13px;border-radius:6px;background:#111;border:1px solid:#b88a00;cursor:pointer;color:#ffd966;}
+  body{margin:0;overflow:hidden;height:100vh;font-family:system-ui,-apple-system,sans-serif;color:#fff;background:#000;display:flex;flex-direction:column;}
 
-  .stat-box{
-    background:#111; border:1px solid #b88a00; padding:10px 14px;
-    border-radius:8px; margin-bottom:15px; line-height:22px; font-size:14px;
-    color:#ffd966; display:flex; gap:18px; flex-wrap:wrap; align-items:center;
-  }
-  .stat-item{min-width:200px;}
+  /* 狐狸背景 - 旋转+呼吸（已彻底修复） */
+  #bg-wrapper{position:fixed;left:50%;top:50%;width:120vmin;height:120vmin;transform:translate(-50%,-50%);animation:float 18s ease-in-out infinite;z-index:-2;}
+  #my-bg{width:100%;height:100%;background:url('https://i.imgur.com/hyFUynh.png') center/cover no-repeat;border-radius:50%;box-shadow:0 0 100px rgba(0,0,0,0.9);animation:rotate 50s linear infinite;opacity:0.98;filter:brightness(1.2) contrast(1.15) saturate(1.3);clip-path:circle(50%);}
+  @keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes float{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-48%) scale(1.06)}}
 
-  .toast {
-    position: fixed;
-    top: 18px;
-    right: 18px;
-    background: #b88a00;
-    color: #0b0b0b;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 14px;
-    box-shadow: 0 4px 12px rgba(184,138,0,0.35);
-    z-index: 9999;
-    opacity: 0;
-    transition: opacity .35s;
+  .overlay{position:fixed;inset:0;background:linear-gradient(135deg,rgba(0,0,0,0.18),rgba(30,0,60,0.32));z-index:-1}
+
+  /* 响应式容器 - 电脑手机自动适配 */
+  .container{
+    width:92vw;
+    max-width:920px;
+    margin:auto;
+    padding:8px 0;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    overflow:hidden;
   }
+
+  .card{
+    background:rgba(8,12,38,0.34)!important;
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:22px;
+    padding:18px 22px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.5);
+  }
+
+  h1{font-size:24px;margin:0 0 10px;text-align:center;line-height:1.4;}
+
+  textarea{
+    width:100%;
+    height:180px!important;
+    padding:14px;
+    border-radius:16px;
+    border:none;
+    background:rgba(255,255,255,0.15);
+    color:#fff;
+    font:17px/1.8 Consolas,monospace;
+    resize:none;
+    box-sizing:border-box;
+  }
+  #in{height:200px!important;}
+  #e,#c{height:170px!important;}
+
+  .row{margin:12px 0 10px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:15px;}
+  input[type=text]{width:110px;padding:10px 14px;border-radius:12px;border:none;background:rgba(255,255,255,0.25);color:#fff;font-size:16px;}
+
+  button{padding:12px 30px;border:none;border-radius:20px;font-weight:700;font-size:16px;color:#fff;box-shadow:0 8px 25px rgba(0,0,0,0.4);transition:all 0.3s;cursor:pointer;}
+  button:hover{transform:translateY(-4px) scale(1.06)}
+  #go{background:#38a169}
+  #clear{background:#e53e3e}
+  .btns button{background:#60a5fa;padding:11px 22px;border-radius:18px;font-size:15px}
+
+  .stats{display:flex;gap:18px;margin:8px 0;font-size:15px;flex-wrap:wrap;}
+  .stat{background:rgba(96,165,250,0.3);padding:8px 16px;border-radius:18px;font-weight:700}
+
+  h2{font-size:18px;margin:0 0 10px;line-height:1.4;}
+
+  #toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:rgba(15,30,60,0.95);padding:14px 40px;border-radius:30px;opacity:0;transition:all 0.5s;z-index:999;font-size:16px;white-space:nowrap;}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(-15px)}
 </style>
 </head>
 <body>
 
-<button id="langBtn" class="lang-btn">English</button>
+<div id="bg-wrapper"><div id="my-bg"></div></div>
+<div class="overlay"></div>
 
 <div class="container">
-  <h1 id="title">💎 密钥提取 & 转换 (双语版)</h1>
-
-  <div class="controls">
-    <label for="prefix" id="labelPrefix">前缀：</label>
-    <input id="prefix" class="prefix-input" value="ID" />
-    <label for="startNum" id="labelStart">起始编号：</label>
-    <input id="startNum" class="prefix-input" placeholder="如 50 / 090 / 005" />
-    <button class="btn" id="btnExtract" onclick="extract()">提取</button>
-    <button class="btn" id="btnConvert" onclick="convert()">转换</button>
-    <button class="btn" id="btnClear" onclick="clearAll()">清空</button>
-    <button class="btn" id="btnDownload" onclick="downloadResult()">下载</button>
+  <div class="card">
+    <h1>ID Token 一键提取工具<br><small>ID Token One-Click Extractor</small></h1>
+    <textarea id="in" placeholder="直接粘贴聊天记录，全格式支持 / Paste chat logs here"></textarea>
+    <div class="row">
+      前缀 / Prefix <input id="pre" value="ID">
+      起始号 / Start <input id="start" value="1">
+      <button id="go">开始提取 / Extract</button>
+      <button id="clear">清空 / Clear</button>
+    </div>
+    <div class="stats">
+      <div class="stat">总行 / Total: <span id="tl">0</span></div>
+      <div class="stat">成功 / Success: <span id="ok">0</span></div>
+      <div class="stat">失败 / Failed: <span id="no">0</span></div>
+    </div>
   </div>
 
-  <textarea id="inputText" placeholder="在此粘贴原始数据..."></textarea>
-
-  <h2 id="statTitle">统计面板</h2>
-  <div id="statPanel" class="stat-box">
-    <div class="stat-item" id="statTotal">📄 总行数：0</div>
-    <div class="stat-item" id="statValid">🟢 成功提取：0</div>
-    <div class="stat-item" id="statInvalid">⚠ 未识别行：0</div>
+  <div class="card">
+    <h2>提取结果（ID TOKEN）<br><small>Raw Results</small></h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="btns">
+        <button onclick="save('e')">下载 / Download</button>
+        <button onclick="copy('e')">复制 / Copy</button>
+      </div>
+    </div>
+    <textarea id="e" readonly></textarea>
   </div>
 
-  <h2 id="exTitle">提取结果</h2>
-  <div class="result-wrap">
-    <button class="btn copy-btn" id="btnCopyExtract" onclick="copyResult('extracted')">📋 复制</button>
-    <textarea id="extracted" readonly></textarea>
+  <div class="card">
+    <h2>转换结果（带编号）<br><small>Numbered Results</small></h2>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="btns">
+        <button onclick="save('c')">下载 / Download</button>
+        <button onclick="copy('c')">复制 / Copy</button>
+      </div>
+    </div>
+    <textarea id="c" readonly></textarea>
   </div>
-
-  <h2 id="cvTitle">转换结果</h2>
-  <div class="result-wrap">
-    <button class="btn copy-btn" id="btnCopyConvert" onclick="copyResult('converted')">📋 复制</button>
-    <textarea id="converted" readonly></textarea>
-  </div>
-
-  <p class="note" id="note">支持所有格式，保持顺序，自定义编号，自动补零。</p>
-  <footer id="footer">💎 双语终极版 · Bilingual Ultimate Edition</footer>
 </div>
 
+<div id="toast"></div>
+
 <script>
-/* 多语言 */
-const lang={
-  zh:{title:"💎 密钥提取 & 转换 (双语版)",prefix:"前缀：",start:"起始编号：",extract:"提取",convert:"转换",clear:"清空",download:"下载",
-      placeholder:"在此粘贴原始数据...",exTitle:"提取结果",cvTitle:"转换结果",copy:"📋 复制",note:"支持所有格式，保持顺序，自定义编号，自动补零。",
-      copied:"已复制！",noData:"请先提取数据！",noDownload:"没有内容可下载！",footer:"💎 双语终极版 · Bilingual Ultimate Edition",
-      langBtn:"English",statTitle:"统计面板",st_total:"📄 总行数：",st_valid:"🟢 成功提取：",st_invalid:"⚠ 未识别行："},
-  en:{title:"💎 Key Extract & Convert (Bilingual Version)",prefix:"Prefix:",start:"Start No.:",extract:"Extract",convert:"Convert",clear:"Clear",download:"Download",
-      placeholder:"Paste data here...",exTitle:"Extracted Result",cvTitle:"Converted Result",copy:"📋 Copy",note:"Supports all formats, keeps order, auto-numbering.",
-      copied:"Copied!",noData:"Extract first!",noDownload:"No data!",footer:"💎 Bilingual Ultimate Edition",
-      langBtn:"中文",statTitle:"Statistics",st_total:"📄 Total Lines:",st_valid:"🟢 Extracted:",st_invalid:"⚠ Unrecognized:"}};
-let currentLang="zh";
+function toast(zh,en=''){let x=document.getElementById('toast');x.textContent=zh+(en?' / '+en:'');x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200);}
 
-function applyLang(){
-  const L=lang[currentLang];
-  title.innerText=L.title;
-  labelPrefix.innerText=L.prefix;
-  labelStart.innerText=L.start;
-  btnExtract.innerText=L.extract;
-  btnConvert.innerText=L.convert;
-  btnClear.innerText=L.clear;
-  btnDownload.innerText=L.download;
-  inputText.placeholder=L.placeholder;
-  exTitle.innerText=L.exTitle;
-  cvTitle.innerText=L.cvTitle;
-  btnCopyExtract.innerText=L.copy;
-  btnCopyConvert.innerText=L.copy;
-  note.innerText=L.note;
-  footer.innerText=L.footer;
-  langBtn.innerText=L.langBtn;
-  statTitle.innerText=L.statTitle;
-
-  statTotal.innerText=L.st_total+(statTotal.dataset.val||0);
-  statValid.innerText=L.st_valid+(statValid.dataset.val||0);
-  statInvalid.innerText=L.st_invalid+(statInvalid.dataset.val||0);
-}
-langBtn.onclick=()=>{currentLang=currentLang==="zh"?"en":"zh";applyLang();};
-
-/* 提取逻辑 */
-function extract(){
-  const raw=inputText.value||'';
-  const lines=raw.replace(/\r/g,'').trim().split(/\n+/).map(l=>l.trim()).filter(Boolean);
-  let all=[]; let m;
-
-  // 新格式：任意内容…ID-token…
-  const custom=/(\d+-\d+)-([A-Za-z0-9\-_]{16,})/g;
-  while((m=custom.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
-
-  // block
-  const block=/ID\s*[:=]\s*(\d+-\d+)[\s\S]*?Pass\s*[:=]\s*([A-Za-z0-9\-_]+)/gi;
-  while((m=block.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
-
-  // csv
-  lines.forEach(l=>{
-    const csv=l.match(/^[A-Za-z0-9]+,\s*(\d+-\d+),\s*([A-Za-z0-9\-_]+)$/);
-    if(csv) all.push(`${csv[1]} ${csv[2]}`);
+function run(){
+  let text=document.getElementById('in').value;
+  let set=new Set();
+  let r1=/ID\s*[:：]\s*(\d{1,3}-\d{8})[\s\S]*?Pass\s*[:：]\s*([a-z0-9]{30,})/gi;
+  let m;
+  while(m=r1.exec(text)) set.add(m[1].trim()+' '+m[2].trim().toLowerCase());
+  text.split('\n').forEach(l=>{
+    l=l.trim();
+    let id=l.match(/\d{1,3}-\d{8}/);
+    let token=l.match(/[a-z0-9]{30,50}/i);
+    if(id && token) set.add(id[0]+' '+token[0].toLowerCase());
   });
+  let list=Array.from(set);
+  let total=text.split('\n').filter(x=>x.trim()).length;
 
-  // 单行
-  const single=/(\d+-\d+)[\s,=:+\/]+([A-Za-z0-9\-_]{8,})/g;
-  while((m=single.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
+  document.getElementById('e').value=list.join('\n');
 
-  // JSON
-  const json=/"id"\s*:\s*"(\d+-\d+)"\s*,\s*"token"\s*:\s*"([A-Za-z0-9\-_]+)"/gi;
-  while((m=json.exec(raw))!==null) all.push(`${m[1]} ${m[2]}`);
+  let pre=document.getElementById('pre').value.trim()||'ID';
+  let no=parseInt(document.getElementById('start').value)||1;
+  let pad=list.length>=100?3:list.length>=10?2:1;
+  let out='';
+  list.forEach((v,i)=>out+=pre+String(no+i).padStart(pad,'0')+','+v.replace(' ',',')+'\n');
+  document.getElementById('c').value=out;
 
-  let unique=[...new Set(all)].filter(r=>{
-    const [id,token]=r.split(" ");
-    return id.includes("-") && token.length>=16;
-  });
-
-  extracted.value=unique.join("\n");
-  converted.value="";
-  updateStats(lines.length,unique.length,lines.length-unique.length);
+  document.getElementById('tl').textContent=total;
+  document.getElementById('ok').textContent=list.length;
+  document.getElementById('no').textContent=total-list.length;
 }
 
-function updateStats(total,valid,invalid){
-  const L=lang[currentLang];
-  statTotal.dataset.val=total;
-  statValid.dataset.val=valid;
-  statInvalid.dataset.val=invalid;
-  statTotal.innerText=L.st_total+total;
-  statValid.innerText=L.st_valid+valid;
-  statInvalid.innerText=L.st_invalid+invalid;
-}
+document.getElementById('go').onclick=run;
+document.getElementById('clear').onclick=()=>{['in','e','c'].forEach(id=>document.getElementById(id).value='');document.getElementById('tl').textContent=document.getElementById('ok').textContent=document.getElementById('no').textContent='0';toast('已清空 / Cleared');};
+function copy(x){let el=document.getElementById(x=='e'?'e':'c');el.select();document.execCommand('copy');toast('已复制 / Copied');}
+function save(x){let text=document.getElementById(x=='e'?'e':'c').value;if(!text)return toast('无内容 / Empty');let blob=new Blob([text],{type:'text/plain'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=x=='e'?'ID_TOKEN.txt':'ID_Numbered.txt';a.click();toast('下载完成 / Downloaded');}
 
-/* 转换 */
-function convert(){
-  const text=document.getElementById("extracted").value.trim();
-  if(!text){toast(lang[currentLang].noData);return;}
-
-  const lines=text.split(/\n+/);
-  const prefix=document.getElementById("prefix").value || "ID";
-  let start=document.getElementById("startNum").value.trim();
-  let startNo=parseInt(start||"1",10);
-  const custom=start!==''; 
-  const pad=(lines.length>=100?3:2);
-
-  document.getElementById("converted").value = lines.map((line,i)=>{
-    const [id,token]=line.split(/\s+/);
-    const no=String(custom?(startNo+i):(i+1)).padStart(custom?start.length:pad,"0");
-    return `${prefix}${no},${id},${token}`;
-  }).join("\n");
-}
-
-/* 清空 */
-function clearAll(){
-  inputText.value='';
-  extracted.value='';
-  converted.value='';
-  updateStats(0,0,0);
-}
-
-/* 复制 */
-function copyResult(id){
-  const ta=document.getElementById(id);
-  ta.select();
-  document.execCommand("copy");
-  toast(lang[currentLang].copied);
-}
-
-/* Toast */
-function toast(msg){
-  let div=document.createElement("div");
-  div.className="toast";
-  div.innerText=msg;
-  document.body.appendChild(div);
-  setTimeout(()=>div.style.opacity="1",20);
-  setTimeout(()=>{div.style.opacity="0";setTimeout(()=>div.remove(),350);},1600);
-}
-
-/* 下载 */
-function downloadResult(){
-  let content=converted.value.trim();
-  let name="";
-  if(content){
-    name=(prefix.value||"ID")+".txt";
-  }else{
-    content=extracted.value.trim();
-    name="token.txt";
-  }
-  if(!content){toast(lang[currentLang].noDownload);return;}
-  const blob=new Blob([content],{type:"text/plain;charset=utf-8"});
-  const a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=name;
-  a.click();
-}
-
-applyLang();
-updateStats(0,0,0);
+// 输入后自动提取
+let last='';setInterval(()=>{let now=document.getElementById('in').value;if(now!==last&&now.trim()){last=now;run();}},800);
 </script>
-
 </body>
 </html>
